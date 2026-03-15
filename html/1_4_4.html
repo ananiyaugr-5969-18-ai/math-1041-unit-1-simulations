@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1.4.4 Algebraic and geometric properties of cross product</title>
+    <script src="https://cdn.tailwindcss.com">
+    </script>
+    <style>
+        :root { --background: 240 10% 3.9%; --foreground: 0 0% 98%; --primary: 199 89% 48%; --radius: 0.5rem; }
+        body { background-color: hsl(var(--background)); color: hsl(var(--foreground)); font-family: 'Inter', sans-serif; margin: 0; overflow: hidden; }
+        #ui-layer { position: absolute; top: 2rem; left: 2rem; z-index: 10; pointer-events: none; display: flex; flex-direction: column; gap: 1rem; max-width: 320px; }
+        #ui-layer > * { pointer-events: auto; }
+        .glass { background: rgba(24, 24, 27, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--radius); padding: 1.5rem; }
+    </style>
+    <script type="importmap">
+        { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
+    </script>
+</head>
+<body>
+    <div id="canvas-container" class="absolute inset-0 w-full h-full"></div>
+    <div id="ui-layer">
+        <div class="glass flex flex-col gap-3">
+            <h1 class="text-xl font-bold bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent italic">Distributive Property</h1>
+            <p class="text-[10px] text-white/50 italic">The cross product is distributive: <b>u x (v + w) = (u x v) + (u x w)</b>.</p>
+            <div id="stat" class="p-3 bg-blue-500/10 rounded font-mono text-[10px] border border-blue-500/20 text-blue-300 text-center font-bold">
+                DISTRIBUTIVE HOLDS
+            </div>
+            <p class="text-[9px] text-white/30 text-center uppercase tracking-widest mt-1">Cross Product Laws in 3D</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x09090b);
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+        camera.position.set(5, 5, 10);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+        new OrbitControls(camera, renderer.domElement);
+
+        scene.add(new THREE.GridHelper(10, 10, 0x222222, 0x111111));
+        const u = new THREE.Vector3(2, 0, 0);
+        const v = new THREE.Vector3(0, 2, 0);
+        const w = new THREE.Vector3(0, 0, 2);
+        
+        scene.add(new THREE.ArrowHelper(u.clone().normalize(), new THREE.Vector3(0,0,0), 2, 0x3b82f6));
+        scene.add(new THREE.ArrowHelper(v.clone().normalize(), new THREE.Vector3(0,0,0), 2, 0x10b981));
+        scene.add(new THREE.ArrowHelper(w.clone().normalize(), new THREE.Vector3(0,0,0), 2, 0xfacc15));
+
+        scene.add(new THREE.AmbientLight(0xffffff, 1));
+        function animate() { requestAnimationFrame(animate); renderer.render(scene, camera); }
+        animate();
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
