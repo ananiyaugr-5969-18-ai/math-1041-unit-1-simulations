@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1.3.3 Vector Representation</title>
+    <script src="https://cdn.tailwindcss.com">
+    </script>
+    <style>
+        :root { --background: 240 10% 3.9%; --foreground: 0 0% 98%; --primary: 199 89% 48%; --radius: 0.5rem; }
+        body { background-color: hsl(var(--background)); color: hsl(var(--foreground)); font-family: 'Inter', sans-serif; margin: 0; overflow: hidden; }
+        #ui-layer { position: absolute; top: 2rem; left: 2rem; z-index: 10; pointer-events: none; display: flex; flex-direction: column; gap: 1rem; max-width: 320px; }
+        #ui-layer > * { pointer-events: auto; }
+        .glass { background: rgba(24, 24, 27, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--radius); padding: 1.5rem; }
+    </style>
+    <script type="importmap">
+        { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
+    </script>
+</head>
+<body>
+    <div id="canvas-container" class="absolute inset-0 w-full h-full"></div>
+    <div id="ui-layer">
+        <div class="glass flex flex-col gap-3">
+            <h1 class="text-xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-500 bg-clip-text text-transparent italic">Component Form</h1>
+            <p class="text-[10px] text-white/50 italic">A vector <b>v</b> can be written as <b>(v₁, v₂, v₃)</b> representing displacements along axes.</p>
+            <div id="comp-display" class="p-3 bg-emerald-500/10 rounded font-mono text-[10px] border border-emerald-500/20 text-emerald-300 leading-relaxed">
+                v = <2.0, 3.0, 4.0>
+            </div>
+            <div class="flex flex-col gap-1 mt-2">
+                <label class="text-[10px] uppercase font-bold text-white/40">Z-Component</label>
+                <input type="range" id="z-comp" min="-5" max="5" step="0.1" value="4" class="w-full accent-emerald-500">
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x09090b);
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+        camera.position.set(5, 5, 8);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+        new OrbitControls(camera, renderer.domElement);
+
+        scene.add(new THREE.GridHelper(10, 10, 0x222222, 0x111111));
+        const arrow = new THREE.ArrowHelper(new THREE.Vector3(1,0,0), new THREE.Vector3(0,0,0), 1, 0x10b981, 0.4, 0.1);
+        scene.add(arrow);
+
+        const zIn = document.getElementById('z-comp');
+        const display = document.getElementById('comp-display');
+
+        function update() {
+            const z = parseFloat(zIn.value);
+            const v = new THREE.Vector3(2, 3, z);
+            arrow.setDirection(v.clone().normalize());
+            arrow.setLength(v.length());
+            display.textContent = `v = <2.0, 3.0, ${z.toFixed(1)}>`;
+        }
+
+        zIn.oninput = update;
+        update();
+        scene.add(new THREE.AmbientLight(0xffffff, 1));
+        function animate() { requestAnimationFrame(animate); renderer.render(scene, camera); }
+        animate();
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
