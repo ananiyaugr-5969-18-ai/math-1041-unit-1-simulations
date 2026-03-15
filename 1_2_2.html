@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1.2.2 Equivalent Vectors</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root { --background: 240 10% 3.9%; --foreground: 0 0% 98%; --primary: 263.4 70% 50.4%; --radius: 0.5rem; }
+        body { background-color: hsl(var(--background)); color: hsl(var(--foreground)); font-family: 'Inter', sans-serif; margin: 0; overflow: hidden; }
+        #ui-layer { position: absolute; top: 2rem; left: 2rem; z-index: 10; pointer-events: none; display: flex; flex-direction: column; gap: 1rem; max-width: 320px; }
+        #ui-layer > * { pointer-events: auto; }
+        .glass { background: rgba(24, 24, 27, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--radius); padding: 1.5rem; }
+    </style>
+    <script type="importmap">
+        { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
+    </script>
+</head>
+<body>
+    <div id="canvas-container" class="absolute inset-0 w-full h-full"></div>
+    <div id="ui-layer">
+        <div class="glass flex flex-col gap-3">
+            <h1 class="text-xl font-bold bg-gradient-to-r from-orange-400 to-amber-500 bg-clip-text text-transparent">Equivalent Vectors</h1>
+            <p class="text-[10px] text-white/50 italic">Vectors are equivalent if they have the same magnitude and direction, even if they have different initial positions.</p>
+            <button id="reset-pos" class="bg-amber-600/20 hover:bg-amber-600/30 border border-amber-600/40 text-amber-400 rounded py-1.5 text-[10px] font-bold transition-all uppercase tracking-wider">
+                Reset to Origin (v1)
+            </button>
+            <div id="coords" class="p-2 bg-black/40 rounded font-mono text-[10px] border border-white/5 space-y-1">
+                <div class="flex justify-between"><span>V1 (Fixed):</span><span class="text-amber-500">(3, 2, 0)</span></div>
+                <div class="flex justify-between"><span>V2 (Movable):</span><span id="v2-val" class="text-amber-500">(3, 2, 0)</span></div>
+            </div>
+            <p class="text-[9px] text-white/30 text-center uppercase font-bold tracking-widest mt-1">Drag Vectors in 3D Space</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x09090b);
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+        camera.position.set(5, 5, 10);
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+        const controls = new OrbitControls(camera, renderer.domElement);
+
+        scene.add(new THREE.GridHelper(20, 20, 0x222222, 0x111111));
+        const vDir = new THREE.Vector3(3, 2, 0);
+        
+        const arrow1 = new THREE.ArrowHelper(vDir.clone().normalize(), new THREE.Vector3(0,0,0), vDir.length(), 0xf59e0b, 0.5, 0.2);
+        const arrow2 = new THREE.ArrowHelper(vDir.clone().normalize(), new THREE.Vector3(-4,1,0), vDir.length(), 0xfcd34d, 0.5, 0.2);
+        scene.add(arrow1, arrow2);
+
+        document.getElementById('reset-pos').onclick = () => {
+            arrow2.position.set(-4, 1, 0);
+        };
+
+        let time = 0;
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.01;
+            arrow2.position.x = -4 + Math.sin(time) * 2;
+            arrow2.position.y = 1 + Math.cos(time) * 1;
+            
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+        scene.add(new THREE.AmbientLight(0xffffff, 1));
+    </script>
+</body>
+</html>
