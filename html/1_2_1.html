@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1.2.1 Directed Line Segments</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root { --background: 240 10% 3.9%; --foreground: 0 0% 98%; --primary: 263.4 70% 50.4%; --radius: 0.5rem; }
+        body { background-color: hsl(var(--background)); color: hsl(var(--foreground)); font-family: 'Inter', sans-serif; margin: 0; overflow: hidden; }
+        #ui-layer { position: absolute; top: 2rem; left: 2rem; z-index: 10; pointer-events: none; display: flex; flex-direction: column; gap: 1rem; max-width: 320px; }
+        #ui-layer > * { pointer-events: auto; }
+        .glass { background: rgba(24, 24, 27, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--radius); padding: 1.5rem; }
+    </style>
+    <script type="importmap">
+        { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
+    </script>
+</head>
+<body>
+    <div id="canvas-container" class="absolute inset-0 w-full h-full"></div>
+    <div id="ui-layer">
+        <div class="glass flex flex-col gap-3">
+            <h1 class="text-xl font-bold bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent italic">Directed Segments</h1>
+            <p class="text-xs text-white/70">A vector as a directed line segment from <b>Initial Point A</b> to <b>Terminal Point B</b>.</p>
+            <div class="space-y-4 mt-2">
+                <div class="space-y-1">
+                    <label class="text-[10px] uppercase font-bold text-white/40">Point A (Initial)</label>
+                    <input type="range" id="ax" min="-5" max="5" step="0.5" value="-2" class="w-full accent-indigo-500">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] uppercase font-bold text-white/40">Point B (Terminal)</label>
+                    <input type="range" id="bx" min="-5" max="5" step="0.5" value="3" class="w-full accent-cyan-500">
+                </div>
+            </div>
+            <div id="vector-info" class="p-2 bg-black/40 rounded font-mono text-[11px] border border-white/5 text-cyan-300">
+                Vector AB = (5.0, 2.0, 0.0)
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x09090b);
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 5, 12);
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+        const controls = new OrbitControls(camera, renderer.domElement);
+
+        scene.add(new THREE.GridHelper(20, 20, 0x222222, 0x111111));
+        scene.add(new THREE.AxesHelper(5));
+
+        const sphereA = new THREE.Mesh(new THREE.SphereGeometry(0.15), new THREE.MeshPhongMaterial({ color: 0x6366f1 }));
+        const sphereB = new THREE.Mesh(new THREE.SphereGeometry(0.15), new THREE.MeshPhongMaterial({ color: 0x22d3ee }));
+        scene.add(sphereA, sphereB);
+
+        const arrow = new THREE.ArrowHelper(new THREE.Vector3(1,0,0), new THREE.Vector3(0,0,0), 1, 0x22d3ee, 0.5, 0.2);
+        scene.add(arrow);
+
+        const ax = document.getElementById('ax');
+        const bx = document.getElementById('bx');
+        const info = document.getElementById('vector-info');
+
+        function update() {
+            const vA = new THREE.Vector3(parseFloat(ax.value), 0, 0);
+            const vB = new THREE.Vector3(parseFloat(bx.value), 2, 0);
+            const vAB = vB.clone().sub(vA);
+
+            sphereA.position.copy(vA);
+            sphereB.position.copy(vB);
+            
+            arrow.position.copy(vA);
+            arrow.setDirection(vAB.clone().normalize());
+            arrow.setLength(vAB.length());
+
+            info.textContent = `Vector AB = (${vAB.x.toFixed(1)}, ${vAB.y.toFixed(1)}, ${vAB.z.toFixed(1)})`;
+        }
+
+        [ax, bx].forEach(i => i.addEventListener('input', update));
+        update();
+        scene.add(new THREE.PointLight(0xffffff, 50).set(5,5,5), new THREE.AmbientLight(0xffffff, 0.5));
+
+        function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); }
+        animate();
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
