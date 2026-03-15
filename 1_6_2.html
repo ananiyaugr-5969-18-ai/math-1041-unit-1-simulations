@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1.6.2 Triangle Area</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root { --background: 240 10% 3.9%; --foreground: 0 0% 98%; --primary: 199 89% 48%; --radius: 0.5rem; }
+        body { background-color: hsl(var(--background)); color: hsl(var(--foreground)); font-family: 'Inter', sans-serif; margin: 0; overflow: hidden; }
+        #ui-layer { position: absolute; top: 2rem; left: 2rem; z-index: 10; pointer-events: none; display: flex; flex-direction: column; gap: 1rem; max-width: 320px; }
+        #ui-layer > * { pointer-events: auto; }
+        .glass { background: rgba(24, 24, 27, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--radius); padding: 1.5rem; }
+    </style>
+    <script type="importmap">
+        { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
+    </script>
+</head>
+<body>
+    <div id="canvas-container" class="absolute inset-0 w-full h-full"></div>
+    <div id="ui-layer">
+        <div class="glass flex flex-col gap-3">
+            <h1 class="text-xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">Triangle Area</h1>
+            <p class="text-[10px] text-white/50 italic">The area of a triangle is half the area of the parallelogram: <b>Area = ½ ||u x v||</b>.</p>
+            <div id="area-display" class="p-3 bg-orange-500/10 rounded font-mono text-sm border border-orange-500/20 text-orange-400 text-center font-bold">
+                Area = 6.00
+            </div>
+            <div class="flex flex-col gap-1">
+                <label class="text-[10px] uppercase font-bold text-white/40">Height Adjustment</label>
+                <input type="range" id="height" min="1" max="6" step="0.1" value="3" class="w-full accent-orange-500">
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x09090b);
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 0, 10);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+        new OrbitControls(camera, renderer.domElement);
+
+        scene.add(new THREE.GridHelper(10, 10, 0x222222, 0x111111));
+        
+        const geometry = new THREE.BufferGeometry();
+        const material = new THREE.MeshBasicMaterial({ color: 0xf59e0b, side: THREE.DoubleSide, transparent: true, opacity: 0.5 });
+        const mesh = new THREE.Mesh(geometry, material);
+        scene.add(mesh);
+
+        const hIn = document.getElementById('height');
+        const display = document.getElementById('area-display');
+
+        function update() {
+            const h = parseFloat(hIn.value);
+            const base = 4;
+            const vertices = new Float32Array([
+                0, 0, 0,
+                base, 0, 0,
+                base/2, h, 0
+            ]);
+            geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+            
+            const area = 0.5 * base * h;
+            display.textContent = `Area = ${area.toFixed(2)}`;
+        }
+
+        hIn.addEventListener('input', update);
+        update();
+        function animate() { requestAnimationFrame(animate); renderer.render(scene, camera); }
+        animate();
+    </script>
+</body>
+</html>
