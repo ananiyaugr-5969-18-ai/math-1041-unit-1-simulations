@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1.4.2 Anticommutativity</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root { --background: 240 10% 3.9%; --foreground: 0 0% 98%; --primary: 199 89% 48%; --radius: 0.5rem; }
+        body { background-color: hsl(var(--background)); color: hsl(var(--foreground)); font-family: 'Inter', sans-serif; margin: 0; overflow: hidden; }
+        #ui-layer { position: absolute; top: 2rem; left: 2rem; z-index: 10; pointer-events: none; display: flex; flex-direction: column; gap: 1rem; max-width: 320px; }
+        #ui-layer > * { pointer-events: auto; }
+        .glass { background: rgba(24, 24, 27, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--radius); padding: 1.5rem; }
+    </style>
+    <script type="importmap">
+        { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
+    </script>
+</head>
+<body>
+    <div id="canvas-container" class="absolute inset-0 w-full h-full"></div>
+    <div id="ui-layer">
+        <div class="glass flex flex-col gap-3">
+            <h1 class="text-xl font-bold bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent italic">Anticommutative</h1>
+            <p class="text-[10px] text-white/50 italic">Property: <b>u x v = -(v x u)</b>. Swapping vectors flips the direction of the cross product.</p>
+            <button id="swap" class="bg-white/5 hover:bg-white/10 border border-white/10 rounded py-2 text-xs font-bold uppercase transition-all">
+                Swap u and v
+            </button>
+            <div id="status" class="p-2 bg-red-500/10 rounded font-mono text-[10px] border border-red-500/20 text-red-400 text-center font-bold">
+                Showing: u x v
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x09090b);
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+        camera.position.set(4, 4, 8);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+        new OrbitControls(camera, renderer.domElement);
+
+        scene.add(new THREE.GridHelper(10, 10, 0x222222, 0x111111));
+        const u = new THREE.Vector3(3, 0, 0); const v = new THREE.Vector3(0, 3, 0);
+        const arrowU = new THREE.ArrowHelper(u.clone().normalize(), new THREE.Vector3(0,0,0), 3, 0xffffff, 0.4, 0.1);
+        const arrowV = new THREE.ArrowHelper(v.clone().normalize(), new THREE.Vector3(0,0,0), 3, 0xf97316, 0.4, 0.1);
+        const arrowCP = new THREE.ArrowHelper(new THREE.Vector3(0,0,1), new THREE.Vector3(0,0,0), 3, 0xef4444, 0.4, 0.2);
+        scene.add(arrowU, arrowV, arrowCP);
+
+        let isSwapped = false;
+        document.getElementById('swap').onclick = () => {
+            isSwapped = !isSwapped;
+            const cp = isSwapped ? new THREE.Vector3().crossVectors(v, u) : new THREE.Vector3().crossVectors(u, v);
+            arrowCP.setDirection(cp.clone().normalize());
+            document.getElementById('status').textContent = isSwapped ? "Showing: v x u" : "Showing: u x v";
+        };
+
+        scene.add(new THREE.AmbientLight(0xffffff, 1));
+        function animate() { requestAnimationFrame(animate); renderer.render(scene, camera); }
+        animate();
+    </script>
+</body>
+</html>
