@@ -1,16 +1,47 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>1.4.1 Cross Product</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root { --background: 240 10% 3.9%; --foreground: 0 0% 98%; --primary: 199 89% 48%; --radius: 0.5rem; }
-        body { background-color: hsl(var(--background)); color: hsl(var(--foreground)); font-family: 'Inter', sans-serif; margin: 0; overflow: hidden; }
-        #ui-layer { position: absolute; top: 2rem; left: 2rem; z-index: 10; pointer-events: none; display: flex; flex-direction: column; gap: 1rem; max-width: 320px; }
+        :root {
+            --notion-bg-main: #FFFFFF;
+            --notion-bg-sidebar: #F7F7F5;
+            --notion-hover-main: #F1F1EF;
+            --notion-text-primary: #37352F;
+            --notion-text-secondary: #787774;
+            --notion-text-placeholder: #9A9A97;
+            --notion-border: #E9E9E7;
+            --primary: #2383E2;
+            --radius: 4px;
+        }
+        body {
+            background-color: var(--notion-bg-main);
+            color: var(--notion-text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            margin: 0;
+            overflow: hidden;
+        }
+        #ui-layer {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            z-index: 10;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column; gap: 0.75rem; max-width: 300px;
+        }
         #ui-layer > * { pointer-events: auto; }
-        .glass { background: rgba(24, 24, 27, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--radius); padding: 1.5rem; }
+        .glass {
+            background: var(--notion-bg-main); border: 1px solid var(--notion-border);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.07); border-radius: var(--radius); padding: 1rem;
+        }
+        input[type="range"] {
+            -webkit-appearance: none; width: 100%; height: 4px; background: var(--notion-border);
+            border-radius: 2px; outline: none;
+        }
     </style>
     <script type="importmap">
         { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
@@ -20,14 +51,14 @@
     <div id="canvas-container" class="absolute inset-0 w-full h-full"></div>
     <div id="ui-layer">
         <div class="glass flex flex-col gap-3">
-            <h1 class="text-xl font-bold bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent italic">Cross Product</h1>
-            <p class="text-[10px] text-white/50 italic">The cross product <b>u x v</b> is a vector perpendicular to both <b>u</b> and <b>v</b>.</p>
-            <div id="status" class="p-3 bg-red-500/10 rounded font-mono text-xs border border-red-500/20 text-red-400 text-center font-bold uppercase tracking-widest">
-                Orthogonal Result
+            <h1 class="text-sm font-semibold">Cross Product u x v</h1>
+            <p class="text-[10px] text-[--notion-text-secondary] italic">Yields a vector orthogonal to both <b>u</b> and <b>v</b>.</p>
+            <div id="cp-info" class="p-3 bg-red-500/10 rounded font-mono text-sm border border-red-500/20 text-red-400 text-center font-bold uppercase tracking-widest">
+                Magnitude: 16.0
             </div>
             <div class="flex flex-col gap-1">
-                <label class="text-[10px] uppercase font-bold text-white/40">Rotate Vector v</label>
-                <input type="range" id="angle" min="0.1" max="3" step="0.1" value="1.57" class="w-full accent-orange-500">
+                <label class="text-[10px] uppercase font-bold text-[--notion-text-secondary]">Angle θ</label>
+                <input type="range" id="angle" min="0" max="3.14" step="0.1" value="1.57">
             </div>
         </div>
     </div>
@@ -37,7 +68,7 @@
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x09090b);
+        scene.background = new THREE.Color(0xffffff);
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
         camera.position.set(5, 5, 10);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -45,26 +76,27 @@
         document.getElementById('canvas-container').appendChild(renderer.domElement);
         new OrbitControls(camera, renderer.domElement);
 
-        scene.add(new THREE.GridHelper(10, 10, 0x222222, 0x111111));
+        scene.add(new THREE.GridHelper(10, 10, 0xd1d1d1, 0xe9e9e7));
         const u = new THREE.Vector3(4, 0, 0);
-        const arrowU = new THREE.ArrowHelper(u.clone().normalize(), new THREE.Vector3(0,0,0), 4, 0xffffff, 0.4, 0.1);
-        const arrowV = new THREE.ArrowHelper(new THREE.Vector3(0,4,0), new THREE.Vector3(0,0,0), 4, 0xf97316, 0.4, 0.1);
-        const arrowCP = new THREE.ArrowHelper(new THREE.Vector3(0,0,1), new THREE.Vector3(0,0,0), 4, 0xef4444, 0.5, 0.2);
+        const arrowU = new THREE.ArrowHelper(u.clone().normalize(), new THREE.Vector3(0,0,0), 4, 0x2383E2);
+        const arrowV = new THREE.ArrowHelper(new THREE.Vector3(0,1,0), new THREE.Vector3(0,0,0), 4, 0xef4444);
+        const arrowCP = new THREE.ArrowHelper(new THREE.Vector3(0,0,1), new THREE.Vector3(0,0,0), 16, 0xef4444);
         scene.add(arrowU, arrowV, arrowCP);
 
-        const angleIn = document.getElementById('angle');
+        const aIn = document.getElementById('angle');
+        const cpInfo = document.getElementById('cp-info');
 
         function update() {
-            const ang = parseFloat(angleIn.value);
-            const v = new THREE.Vector3(Math.cos(ang) * 4, Math.sin(ang) * 4, 0);
+            const ang = parseFloat(aIn.value);
+            const v = new THREE.Vector3(Math.cos(ang)*4, Math.sin(ang)*4, 0);
             arrowV.setDirection(v.clone().normalize());
-            
             const cp = new THREE.Vector3().crossVectors(u, v);
             arrowCP.setDirection(cp.clone().normalize());
-            arrowCP.setLength(cp.length() * 0.25); // Scaling for visibility
+            arrowCP.setLength(cp.length() || 0.001);
+            cpInfo.textContent = `Magnitude: ${cp.length().toFixed(1)}`;
         }
 
-        angleIn.addEventListener('input', update);
+        aIn.addEventListener('input', update);
         update();
         scene.add(new THREE.AmbientLight(0xffffff, 1));
         function animate() { requestAnimationFrame(animate); renderer.render(scene, camera); }
