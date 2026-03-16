@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1.3.6 Distance Formula</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --notion-bg-main: #FFFFFF;
+            --notion-bg-sidebar: #F7F7F5;
+            --notion-hover-main: #F1F1EF;
+            --notion-text-primary: #37352F;
+            --notion-text-secondary: #787774;
+            --notion-text-placeholder: #9A9A97;
+            --notion-border: #E9E9E7;
+            --primary: #2383E2;
+            --radius: 4px;
+        }
+        body {
+            background-color: var(--notion-bg-main);
+            color: var(--notion-text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            margin: 0;
+            overflow: hidden;
+        }
+        #ui-layer {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            z-index: 10;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column; gap: 0.75rem; max-width: 300px;
+        }
+        #ui-layer > * { pointer-events: auto; }
+        .glass {
+            background: var(--notion-bg-main); border: 1px solid var(--notion-border);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.07); border-radius: var(--radius); padding: 1rem;
+        }
+        input[type="range"] {
+            -webkit-appearance: none; width: 100%; height: 4px; background: var(--notion-border);
+            border-radius: 2px; outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none; width: 14px; height: 14px;
+            background: var(--notion-text-secondary); cursor: pointer; border-radius: 50%; border: 1px solid var(--notion-border);
+        }
+    </style>
+    <script type="importmap">
+        { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
+    </script>
+</head>
+<body>
+    <div id="canvas-container" class="absolute inset-0 w-full h-full"></div>
+    <div id="ui-layer">
+        <div class="glass flex flex-col gap-3">
+            <h1 class="text-sm font-semibold">Distance d(P, Q)</h1>
+            <p class="text-[10px] text-[--notion-text-secondary] italic"><b>d = sqrt((x₂-x₁)² + (y₂-y₁)² + (z₂-z₁)²)</b>.</p>
+            <div id="dist" class="p-3 bg-teal-500/10 rounded font-mono text-sm border border-teal-500/20 text-teal-400 text-center font-bold">
+                d = 5.00
+            </div>
+            <div class="flex flex-col gap-1">
+                <label class="text-[10px] uppercase font-bold text-[--notion-text-secondary]">Point Q (x)</label>
+                <input type="range" id="qx" min="-5" max="5" step="0.1" value="3">
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xffffff);
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+        camera.position.set(2, 2, 8);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+        new OrbitControls(camera, renderer.domElement);
+
+        scene.add(new THREE.GridHelper(10, 10, 0xd1d1d1, 0xe9e9e7));
+        const p = new THREE.Mesh(new THREE.SphereGeometry(0.1), new THREE.MeshBasicMaterial({ color: 0x787774 }));
+        const q = new THREE.Mesh(new THREE.SphereGeometry(0.15), new THREE.MeshBasicMaterial({ color: 0x14b8a6 }));
+        scene.add(p, q);
+        const line = new THREE.Line(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: 0x14b8a6, transparent: true, opacity: 0.5 }));
+        scene.add(line);
+
+        const qxIn = document.getElementById('qx');
+        const dOut = document.getElementById('dist');
+
+        function update() {
+            const qx = parseFloat(qxIn.value);
+            q.position.set(qx, 4, 0);
+            line.geometry.setFromPoints([p.position, q.position]);
+            const d = p.position.distanceTo(q.position);
+            dOut.textContent = `d = ${d.toFixed(2)}`;
+        }
+
+        qxIn.addEventListener('input', update);
+        update();
+        scene.add(new THREE.AmbientLight(0xffffff, 1));
+        function animate() { requestAnimationFrame(animate); renderer.render(scene, camera); }
+        animate();
+    </script>
+</body>
+</html>
