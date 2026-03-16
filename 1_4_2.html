@@ -1,16 +1,59 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>1.4.2 Anticommutativity</title>
+    <title>1.4.2 Cross Product Properties</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root { --background: 240 10% 3.9%; --foreground: 0 0% 98%; --primary: 199 89% 48%; --radius: 0.5rem; }
-        body { background-color: hsl(var(--background)); color: hsl(var(--foreground)); font-family: 'Inter', sans-serif; margin: 0; overflow: hidden; }
-        #ui-layer { position: absolute; top: 2rem; left: 2rem; z-index: 10; pointer-events: none; display: flex; flex-direction: column; gap: 1rem; max-width: 320px; }
+        :root {
+            --notion-bg-main: #FFFFFF;
+            --notion-bg-sidebar: #F7F7F5;
+            --notion-hover-main: #F1F1EF;
+            --notion-text-primary: #37352F;
+            --notion-text-secondary: #787774;
+            --notion-border: #E9E9E7;
+            --primary: #2383E2;
+            --radius: 4px;
+        }
+        body {
+            background-color: var(--notion-bg-main);
+            color: var(--notion-text-primary);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            overflow: hidden;
+        }
+        #ui-layer {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 280px;
+        }
         #ui-layer > * { pointer-events: auto; }
-        .glass { background: rgba(24, 24, 27, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--radius); padding: 1.5rem; }
+        .glass {
+            background: var(--notion-bg-main);
+            border: 1px solid var(--notion-border);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border-radius: var(--radius);
+            padding: 16px;
+        }
+        .btn-notion {
+            background: var(--notion-bg-main);
+            border: 1px solid var(--notion-border);
+            padding: 6px 12px;
+            border-radius: var(--radius);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.1s;
+        }
+        .btn-notion:hover { background: var(--notion-hover-main); }
     </style>
     <script type="importmap">
         { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
@@ -19,15 +62,13 @@
 <body>
     <div id="canvas-container" class="absolute inset-0 w-full h-full"></div>
     <div id="ui-layer">
-        <div class="glass flex flex-col gap-3">
-            <h1 class="text-xl font-bold bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent italic">Anticommutative</h1>
-            <p class="text-[10px] text-white/50 italic">Property: <b>u x v = -(v x u)</b>. Swapping vectors flips the direction of the cross product.</p>
-            <button id="swap" class="bg-white/5 hover:bg-white/10 border border-white/10 rounded py-2 text-xs font-bold uppercase transition-all">
-                Swap u and v
-            </button>
-            <div id="status" class="p-2 bg-red-500/10 rounded font-mono text-[10px] border border-red-500/20 text-red-400 text-center font-bold">
-                Showing: u x v
+        <div class="glass">
+            <h1 class="text-sm font-semibold mb-1">Anticommutativity</h1>
+            <p class="text-[12px] text-[--notion-text-secondary] italic mb-3"><b>u x v = -(v x u)</b>.</p>
+            <div id="status" class="p-3 bg-[--notion-bg-sidebar] rounded font-mono text-xs border border-[--notion-border] text-center font-bold tracking-widest uppercase mb-3">
+                u x v
             </div>
+            <button id="toggle-btn" class="btn-notion">Switch to v x u</button>
         </div>
     </div>
 
@@ -36,30 +77,30 @@
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x09090b);
+        scene.background = new THREE.Color(0xFFFFFF);
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-        camera.position.set(4, 4, 8);
+        camera.position.set(5, 5, 10);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.getElementById('canvas-container').appendChild(renderer.domElement);
         new OrbitControls(camera, renderer.domElement);
 
-        scene.add(new THREE.GridHelper(10, 10, 0x222222, 0x111111));
-        const u = new THREE.Vector3(3, 0, 0); const v = new THREE.Vector3(0, 3, 0);
-        const arrowU = new THREE.ArrowHelper(u.clone().normalize(), new THREE.Vector3(0,0,0), 3, 0xffffff, 0.4, 0.1);
-        const arrowV = new THREE.ArrowHelper(v.clone().normalize(), new THREE.Vector3(0,0,0), 3, 0xf97316, 0.4, 0.1);
-        const arrowCP = new THREE.ArrowHelper(new THREE.Vector3(0,0,1), new THREE.Vector3(0,0,0), 3, 0xef4444, 0.4, 0.2);
+        scene.add(new THREE.GridHelper(10, 10, 0xE9E9E7, 0xF1F1EF));
+        const u = new THREE.Vector3(4, 0, 0);
+        const v = new THREE.Vector3(0, 4, 0);
+        const arrowU = new THREE.ArrowHelper(u.clone().normalize(), new THREE.Vector3(0,0,0), 4, 0x2383E2);
+        const arrowV = new THREE.ArrowHelper(v.clone().normalize(), new THREE.Vector3(0,0,0), 4, 0xef4444);
+        const arrowCP = new THREE.ArrowHelper(new THREE.Vector3(0,0,1), new THREE.Vector3(0,0,0), 16, 0x10b981);
         scene.add(arrowU, arrowV, arrowCP);
 
-        let isSwapped = false;
-        document.getElementById('swap').onclick = () => {
-            isSwapped = !isSwapped;
-            const cp = isSwapped ? new THREE.Vector3().crossVectors(v, u) : new THREE.Vector3().crossVectors(u, v);
-            arrowCP.setDirection(cp.clone().normalize());
-            document.getElementById('status').textContent = isSwapped ? "Showing: v x u" : "Showing: u x v";
+        let isUcrossV = true;
+        document.getElementById('toggle-btn').onclick = (e) => {
+            isUcrossV = !isUcrossV;
+            arrowCP.setDirection(new THREE.Vector3(0, 0, isUcrossV ? 1 : -1));
+            document.getElementById('status').innerText = isUcrossV ? "u x v" : "v x u";
+            e.target.innerText = isUcrossV ? "Switch to v x u" : "Switch to u x v";
         };
 
-        scene.add(new THREE.AmbientLight(0xffffff, 1));
         function animate() { requestAnimationFrame(animate); renderer.render(scene, camera); }
         animate();
     </script>

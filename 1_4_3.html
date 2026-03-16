@@ -1,16 +1,22 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>1.4.3 Right-Hand Rule</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root { --background: 240 10% 3.9%; --foreground: 0 0% 98%; --primary: 199 89% 48%; --radius: 0.5rem; }
-        body { background-color: hsl(var(--background)); color: hsl(var(--foreground)); font-family: 'Inter', sans-serif; margin: 0; overflow: hidden; }
-        #ui-layer { position: absolute; top: 2rem; left: 2rem; z-index: 10; pointer-events: none; display: flex; flex-direction: column; gap: 1rem; max-width: 320px; }
-        #ui-layer > * { pointer-events: auto; }
-        .glass { background: rgba(24, 24, 27, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--radius); padding: 1.5rem; }
+        :root {
+            --notion-bg-main: #FFFFFF;
+            --notion-bg-sidebar: #F7F7F5;
+            --notion-text-primary: #37352F;
+            --notion-text-secondary: #787774;
+            --notion-border: #E9E9E7;
+            --radius: 4px;
+        }
+        body { background-color: var(--notion-bg-main); color: var(--notion-text-primary); font-family: 'Inter', sans-serif; margin: 0; overflow: hidden; }
+        #ui-layer { position: absolute; top: 20px; left: 20px; z-index: 10; pointer-events: none; max-width: 280px; }
+        .glass { background: var(--notion-bg-main); border: 1px solid var(--notion-border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-radius: var(--radius); padding: 16px; pointer-events: auto; }
     </style>
     <script type="importmap">
         { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
@@ -19,13 +25,12 @@
 <body>
     <div id="canvas-container" class="absolute inset-0 w-full h-full"></div>
     <div id="ui-layer">
-        <div class="glass flex flex-col gap-3">
-            <h1 class="text-xl font-bold bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent italic">Right-Hand Rule</h1>
-            <p class="text-[10px] text-white/50 italic">The direction is given by your thumb when fingers curl from <b>u</b> to <b>v</b>.</p>
-            <div id="info" class="p-3 bg-orange-500/10 rounded font-mono text-xs border border-orange-500/20 text-orange-400 text-center uppercase tracking-widest font-bold">
-                Follow the Curl
+        <div class="glass">
+            <h1 class="text-sm font-semibold mb-1">Right-Hand Rule</h1>
+            <p class="text-[12px] text-[--notion-text-secondary] italic mb-3">Thumb points toward <b>u x v</b> when fingers curl from <b>u</b> to <b>v</b>.</p>
+            <div class="p-6 bg-orange-500/10 rounded flex justify-center border border-orange-500/20">
+                <span class="text-4xl animate-bounce">👍</span>
             </div>
-            <p class="text-[9px] text-white/40 uppercase tracking-widest text-center font-bold">Z-Axis Pointing Upwards</p>
         </div>
     </div>
 
@@ -34,23 +39,19 @@
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x09090b);
+        scene.background = new THREE.Color(0xFFFFFF);
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-        camera.position.set(4, 4, 8);
+        camera.position.set(5, 5, 8);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.getElementById('canvas-container').appendChild(renderer.domElement);
         new OrbitControls(camera, renderer.domElement);
 
-        scene.add(new THREE.GridHelper(10, 10, 0x222222, 0x111111));
-        scene.add(new THREE.AxesHelper(5));
+        scene.add(new THREE.GridHelper(10, 10, 0xE9E9E7, 0xF1F1EF));
+        scene.add(new THREE.ArrowHelper(new THREE.Vector3(1,0,0), new THREE.Vector3(0,0,0), 3, 0xef4444));
+        scene.add(new THREE.ArrowHelper(new THREE.Vector3(0,1,0), new THREE.Vector3(0,0,0), 3, 0x10b981));
+        scene.add(new THREE.ArrowHelper(new THREE.Vector3(0,0,1), new THREE.Vector3(0,0,0), 4, 0x2383E2));
 
-        const arrowU = new THREE.ArrowHelper(new THREE.Vector3(1,0,0), new THREE.Vector3(0,0,0), 3, 0xffffff, 0.4, 0.1);
-        const arrowV = new THREE.ArrowHelper(new THREE.Vector3(0,1,0), new THREE.Vector3(0,0,0), 3, 0xf97316, 0.4, 0.1);
-        const arrowCP = new THREE.ArrowHelper(new THREE.Vector3(0,0,1), new THREE.Vector3(0,0,0), 3, 0xef4444, 0.4, 0.2);
-        scene.add(arrowU, arrowV, arrowCP);
-
-        scene.add(new THREE.AmbientLight(0xffffff, 1));
         function animate() { requestAnimationFrame(animate); renderer.render(scene, camera); }
         animate();
     </script>

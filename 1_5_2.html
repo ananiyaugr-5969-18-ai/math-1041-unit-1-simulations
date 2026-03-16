@@ -1,16 +1,24 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>1.5.2 Equations of Lines</title>
+    <title>1.5.2 Line Equations</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root { --background: 240 10% 3.9%; --foreground: 0 0% 98%; --primary: 199 89% 48%; --radius: 0.5rem; }
-        body { background-color: hsl(var(--background)); color: hsl(var(--foreground)); font-family: 'Inter', sans-serif; margin: 0; overflow: hidden; }
-        #ui-layer { position: absolute; top: 2rem; left: 2rem; z-index: 10; pointer-events: none; display: flex; flex-direction: column; gap: 1rem; max-width: 320px; }
+        :root {
+            --notion-bg-main: #FFFFFF;
+            --notion-bg-sidebar: #F7F7F5;
+            --notion-text-primary: #37352F;
+            --notion-text-secondary: #787774;
+            --notion-border: #E9E9E7;
+            --radius: 4px;
+        }
+        body { background-color: var(--notion-bg-main); color: var(--notion-text-primary); font-family: 'Inter', sans-serif; margin: 0; overflow: hidden; }
+        #ui-layer { position: absolute; top: 20px; left: 20px; z-index: 10; pointer-events: none; max-width: 280px; }
         #ui-layer > * { pointer-events: auto; }
-        .glass { background: rgba(24, 24, 27, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--radius); padding: 1.5rem; }
+        .glass { background: var(--notion-bg-main); border: 1px solid var(--notion-border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-radius: var(--radius); padding: 16px; }
+        #eq-box { font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 11px; }
     </style>
     <script type="importmap">
         { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
@@ -19,16 +27,13 @@
 <body>
     <div id="canvas-container" class="absolute inset-0 w-full h-full"></div>
     <div id="ui-layer">
-        <div class="glass flex flex-col gap-3">
-            <h1 class="text-xl font-bold bg-gradient-to-r from-blue-400 to-cyan-500 bg-clip-text text-transparent italic">Line Equations</h1>
-            <p class="text-[10px] text-white/50 italic">A line is defined by a point <b>P₀</b> and a direction vector <b>v</b>. Equation: <b>r = r₀ + tv</b>.</p>
-            <div id="eq-display" class="p-3 bg-blue-500/10 rounded font-mono text-[10px] border border-blue-500/20 text-blue-300 leading-relaxed">
-                r(t) = <0, 0, 0> + t <1, 1, 1>
+        <div class="glass">
+            <h1 class="text-sm font-semibold mb-1">Vector Equation</h1>
+            <p class="text-[12px] text-[--notion-text-secondary] italic mb-3">Line parsing through a point along a vector.</p>
+            <div id="eq-box" class="p-3 bg-[--notion-bg-sidebar] rounded border border-[--notion-border] text-[--notion-text-secondary] mb-4">
+                r(t) = P + tV
             </div>
-            <div class="flex flex-col gap-1">
-                <label class="text-[10px] uppercase font-bold text-white/40">Parameter t</label>
-                <input type="range" id="t-param" min="-10" max="10" step="0.1" value="0" class="w-full accent-blue-500">
-            </div>
+            <input type="range" id="t-p" class="w-full h-1 bg-[--notion-border] rounded-full appearance-none outline-none" min="-5" max="5" step="0.1" value="1">
         </div>
     </div>
 
@@ -37,7 +42,7 @@
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x09090b);
+        scene.background = new THREE.Color(0xFFFFFF);
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
         camera.position.set(5, 5, 10);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -45,34 +50,19 @@
         document.getElementById('canvas-container').appendChild(renderer.domElement);
         new OrbitControls(camera, renderer.domElement);
 
-        scene.add(new THREE.GridHelper(20, 20, 0x222222, 0x111111));
-        
-        // Direction vector v
-        const v = new THREE.Vector3(1, 1, 1);
-        const lineGeo = new THREE.BufferGeometry().setFromPoints([
-            v.clone().multiplyScalar(-10),
-            v.clone().multiplyScalar(10)
-        ]);
-        const lineMat = new THREE.LineBasicMaterial({ color: 0x3b82f6, opacity: 0.3, transparent: true });
-        const line = new THREE.Line(lineGeo, lineMat);
+        scene.add(new THREE.GridHelper(20, 20, 0xE9E9E7, 0xF1F1EF));
+        const p = new THREE.Vector3(0,0,0); const v = new THREE.Vector3(1,1,1);
+        const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints([v.clone().multiplyScalar(-10), v.clone().multiplyScalar(10)]), new THREE.LineBasicMaterial({ color: 0x2383E2, opacity: 0.2, transparent: true }));
         scene.add(line);
-
-        const sphere = new THREE.Mesh(new THREE.SphereGeometry(0.2), new THREE.MeshBasicMaterial({ color: 0x60a5fa }));
+        const sphere = new THREE.Mesh(new THREE.SphereGeometry(0.25), new THREE.MeshBasicMaterial({ color: 0x2383E2 }));
         scene.add(sphere);
 
-        const tIn = document.getElementById('t-param');
-        const display = document.getElementById('eq-display');
+        document.getElementById('t-p').oninput = (e) => {
+            const t = parseFloat(e.target.value);
+            sphere.position.copy(v.clone().multiplyScalar(t));
+            document.getElementById('eq-box').innerText = `r(${t}) = <0,0,0> + ${t}<1,1,1>`;
+        };
 
-        function update() {
-            const t = parseFloat(tIn.value);
-            const pos = v.clone().multiplyScalar(t);
-            sphere.position.copy(pos);
-            display.textContent = `r(${t.toFixed(1)}) = <0,0,0> + ${t.toFixed(1)} <1,1,1> = <${pos.x.toFixed(1)}, ${pos.y.toFixed(1)}, ${pos.z.toFixed(1)}>`;
-        }
-
-        tIn.addEventListener('input', update);
-        update();
-        scene.add(new THREE.AmbientLight(0xffffff, 1));
         function animate() { requestAnimationFrame(animate); renderer.render(scene, camera); }
         animate();
     </script>
