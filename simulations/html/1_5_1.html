@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1.5.1 Scalar Triple Product</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --notion-bg-main: #FFFFFF;
+            --notion-bg-sidebar: #F7F7F5;
+            --notion-hover-main: #F1F1EF;
+            --notion-text-primary: #37352F;
+            --notion-text-secondary: #787774;
+            --notion-text-placeholder: #9A9A97;
+            --notion-border: #E9E9E7;
+            --primary: #2383E2;
+            --radius: 4px;
+        }
+        body {
+            background-color: var(--notion-bg-main);
+            color: var(--notion-text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            margin: 0;
+            overflow: hidden;
+        }
+        #ui-layer {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            z-index: 10;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column; gap: 0.75rem; max-width: 300px;
+        }
+        #ui-layer > * { pointer-events: auto; }
+        .glass {
+            background: var(--notion-bg-main); border: 1px solid var(--notion-border);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.07); border-radius: var(--radius); padding: 1rem;
+        }
+        input[type="range"] {
+            -webkit-appearance: none; width: 100%; height: 4px; background: var(--notion-border);
+            border-radius: 2px; outline: none;
+        }
+    </style>
+    <script type="importmap">
+        { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
+    </script>
+</head>
+<body>
+    <div id="canvas-container" class="absolute inset-0 w-full h-full"></div>
+    <div id="ui-layer">
+        <div class="glass flex flex-col gap-3">
+            <h1 class="text-sm font-semibold">Scalar Triple Product</h1>
+            <p class="text-[10px] text-[--notion-text-secondary] italic"><b>u·(v x w)</b> is the volume of the parallelepiped.</p>
+            <div id="vol" class="p-3 bg-cyan-500/10 rounded font-mono text-sm border border-cyan-500/20 text-cyan-400 text-center font-bold">
+                Volume: 64.00
+            </div>
+            <div class="flex flex-col gap-1">
+                <label class="text-[10px] uppercase font-bold text-[--notion-text-secondary]">Skew Factor</label>
+                <input type="range" id="skew" min="-1.5" max="1.5" step="0.1" value="0.5">
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xffffff);
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+        camera.position.set(6, 6, 12);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+        new OrbitControls(camera, renderer.domElement);
+
+        scene.add(new THREE.GridHelper(20, 20, 0xd1d1d1, 0xe9e9e7));
+        const boxGeo = new THREE.BoxGeometry(4, 4, 4);
+        const boxMat = new THREE.MeshPhongMaterial({ color: 0x0ea5e9, transparent: true, opacity: 0.3 });
+        const box = new THREE.Mesh(boxGeo, boxMat);
+        box.position.set(2, 2, 2);
+        const wire = new THREE.LineSegments(new THREE.EdgesGeometry(boxGeo), new THREE.LineBasicMaterial({ color: 0x0ea5e9 }));
+        wire.position.copy(box.position);
+        scene.add(box, wire);
+
+        const sIn = document.getElementById('skew');
+        const vOut = document.getElementById('vol');
+
+        function update() {
+            const s = parseFloat(sIn.value);
+            const m = new THREE.Matrix4().set(1,s,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
+            box.setRotationFromMatrix(m); wire.setRotationFromMatrix(m);
+            vOut.textContent = `Volume: 64.00`;
+        }
+
+        sIn.oninput = update; update();
+        scene.add(new THREE.AmbientLight(0xffffff, 0.6), new THREE.PointLight(0xffffff, 50).set(5,10,5));
+        function animate() { requestAnimationFrame(animate); renderer.render(scene, camera); }
+        animate();
+    </script>
+</body>
+</html>
