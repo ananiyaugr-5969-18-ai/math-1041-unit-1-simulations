@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vector Addition: Parallelogram Law</title>
+    <style>
+        :root {
+            --notion-bg-main: #FFFFFF;
+            --notion-bg-sidebar: #F7F7F5;
+            --notion-hover-main: #F1F1EF;
+            --notion-text-primary: #37352F;
+            --notion-text-secondary: #787774;
+            --notion-border: #E9E9E7;
+        }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--notion-bg-main);
+            color: var(--notion-text-primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        .prediction-prompt {
+            background-color: var(--notion-bg-sidebar);
+            border: 1px solid var(--notion-border);
+            padding: 12px 18px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            max-width: 600px;
+            text-align: center;
+            font-style: italic;
+        }
+        canvas {
+            border: 1px solid var(--notion-border);
+            background-color: #fff;
+            max-width: 100%;
+            cursor: pointer;
+        }
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            background: var(--notion-bg-sidebar);
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="prediction-prompt">
+        <strong>Prediction Prompt:</strong> If you place the tail of Vector B at the head of Vector A, where will the resulting sum vector end? Does the order (A+B vs B+A) change the final result?
+    </div>
+    
+    <canvas id="canvas" width="600" height="400"></canvas>
+    
+    <div class="controls">
+        <span><strong>Subtopic 1.2: Vector Addition</strong></span>
+        <span>Drag the heads of Vector A and B to see the sum (A + B).</span>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        const origin = { x: 300, y: 350 };
+        let vA = { x: 100, y: -150 };
+        let vB = { x: -150, y: -100 };
+
+        let dragging = null;
+
+        function drawVector(start, end, color, label, dashed = false) {
+            ctx.beginPath();
+            if (dashed) ctx.setLineDash([5, 5]);
+            else ctx.setLineDash([]);
+            
+            ctx.moveTo(start.x, start.y);
+            ctx.lineTo(start.x + end.x, start.y + end.y);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = dashed ? 1.5 : 3;
+            ctx.stroke();
+
+            if (!dashed) {
+                const angle = Math.atan2(end.y, end.x);
+                ctx.beginPath();
+                ctx.moveTo(start.x + end.x, start.y + end.y);
+                ctx.lineTo(start.x + end.x - 10 * Math.cos(angle - Math.PI / 6), start.y + end.y - 10 * Math.sin(angle - Math.PI / 6));
+                ctx.lineTo(start.x + end.x - 10 * Math.cos(angle + Math.PI / 6), start.y + end.y - 10 * Math.sin(angle + Math.PI / 6));
+                ctx.closePath();
+                ctx.fillStyle = color;
+                ctx.fill();
+            }
+
+            ctx.fillStyle = color;
+            ctx.font = '14px sans-serif';
+            ctx.fillText(label, start.x + end.x / 2 + 10, start.y + end.y / 2);
+        }
+
+        function update() {
+            ctx.setLineDash([]);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Grid
+            ctx.strokeStyle = '#f0f0f0';
+            ctx.lineWidth = 1;
+            for(let i=0; i<canvas.width; i+=20) {
+                ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke();
+            }
+            for(let i=0; i<canvas.height; i+=20) {
+                ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); ctx.stroke();
+            }
+
+            const vSum = { x: vA.x + vB.x, y: vA.y + vB.y };
+
+            // Parallelogram ghosts
+            drawVector({ x: origin.x + vA.x, y: origin.y + vA.y }, vB, '#787774', '', true);
+            drawVector({ x: origin.x + vB.x, y: origin.y + vB.y }, vA, '#787774', '', true);
+
+            drawVector(origin, vA, '#37352F', 'A');
+            drawVector(origin, vB, '#2383E2', 'B');
+            drawVector(origin, vSum, '#0F7B6C', 'A + B');
+        }
+
+        canvas.addEventListener('mousedown', e => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            if (Math.hypot(x - (origin.x + vA.x), y - (origin.y + vA.y)) < 20) dragging = 'A';
+            else if (Math.hypot(x - (origin.x + vB.x), y - (origin.y + vB.y)) < 20) dragging = 'B';
+        });
+
+        window.addEventListener('mousemove', e => {
+            if (!dragging) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            if (dragging === 'A') {
+                vA.x = x - origin.x;
+                vA.y = y - origin.y;
+            } else if (dragging === 'B') {
+                vB.x = x - origin.x;
+                vB.y = y - origin.y;
+            }
+            update();
+        });
+
+        window.addEventListener('mouseup', () => dragging = null);
+
+        update();
+    </script>
+</body>
+</html>
