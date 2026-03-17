@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1.1: Points in n-Space</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body { margin: 0; background-color: #ffffff; color: #37352f; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+        .canvas-container { width: 100%; height: 350px; position: relative; border-radius: 8px; border: 1px solid #e9e9e7; background: #f7f7f5; overflow: hidden; }
+        .notion-card { padding: 16px; margin: 16px; border: 1px solid #e9e9e7; border-radius: 8px; background: white; box-shadow: rgba(15, 15, 15, 0.02) 0px 0px 0px 1px, rgba(15, 15, 15, 0.03) 0px 2px 4px; }
+        .control-panel { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 12px; }
+        .label { font-size: 12px; font-weight: 600; color: #73726e; margin-bottom: 2px; }
+        input[type=range] { width: 100%; height: 6px; border-radius: 5px; background: #ebeced; outline: none; -webkit-appearance: none; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #2383e2; cursor: pointer; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .prediction-prompt { background: #f1f1ef; padding: 12px; border-radius: 6px; margin-bottom: 12px; border-left: 4px solid #2383e2; font-size: 14px; }
+        .coord-display { font-family: 'Courier New', Courier, monospace; font-weight: bold; color: #2383e2; background: #e7f3ff; padding: 2px 6px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="notion-card">
+        <h2 class="text-lg font-bold mb-2">1.1 Points in $\mathbb{R}^3$</h2>
+        
+        <div class="prediction-prompt">
+            <strong>Prediction Phase:</strong> If you set $x=3$, $y=2$, and $z=4$, where will the point lie? Visualize the path axis-by-axis before moving the sliders.
+        </div>
+        <div class="canvas-container" id="canvas-container">
+            <div id="three-container" style="width: 100%; height: 100%;"></div>
+        </div>
+        <div class="control-panel">
+            <div>
+                <div class="label">X Coordinate: <span id="x-val" class="coord-display">0.0</span></div>
+                <input type="range" id="x-slider" min="-5" max="5" step="0.1" value="0">
+            </div>
+            <div>
+                <div class="label">Y Coordinate: <span id="y-val" class="coord-display">0.0</span></div>
+                <input type="range" id="y-slider" min="-5" max="5" step="0.1" value="0">
+            </div>
+            <div>
+                <div class="label">Z Coordinate: <span id="z-val" class="coord-display">0.0</span></div>
+                <input type="range" id="z-slider" min="-5" max="5" step="0.1" value="0">
+            </div>
+        </div>
+    </div>
+    <script>
+        const container = document.getElementById('three-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xf7f7f5);
+        const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        container.appendChild(renderer.domElement);
+        scene.add(new THREE.AxesHelper(10));
+        scene.add(new THREE.GridHelper(10, 10));
+        const pointGeo = new THREE.SphereGeometry(0.2, 32, 32);
+        const pointMat = new THREE.MeshPhongMaterial({ color: 0x2383e2 });
+        const point = new THREE.Mesh(pointGeo, pointMat);
+        scene.add(point);
+        const matX = new THREE.LineBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.5 });
+        const matY = new THREE.LineBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.5 });
+        const matZ = new THREE.LineBasicMaterial({ color: 0x0000ff, transparent: true, opacity: 0.5 });
+        let lineX, lineY, lineZ;
+        function updatePath(x, y, z) {
+            scene.remove(lineX, lineY, lineZ);
+            lineX = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), new THREE.Vector3(x,0,0)]), matX);
+            lineY = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x,0,0), new THREE.Vector3(x,y,0)]), matY);
+            lineZ = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x,y,0), new THREE.Vector3(x,y,z)]), matZ);
+            scene.add(lineX, lineY, lineZ);
+        }
+        scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(5, 10, 7);
+        scene.add(dirLight);
+        camera.position.set(7, 7, 7);
+        camera.lookAt(0, 0, 0);
+        function update() {
+            const x = parseFloat(document.getElementById('x-slider').value);
+            const y = parseFloat(document.getElementById('y-slider').value);
+            const z = parseFloat(document.getElementById('z-slider').value);
+            point.position.set(x, y, z);
+            document.getElementById('x-val').innerText = x.toFixed(1);
+            document.getElementById('y-val').innerText = y.toFixed(1);
+            document.getElementById('z-val').innerText = z.toFixed(1);
+            updatePath(x, y, z);
+        }
+        ['x-slider', 'y-slider', 'z-slider'].forEach(id => document.getElementById(id).addEventListener('input', update));
+        function animate() { requestAnimationFrame(animate); renderer.render(scene, camera); }
+        update(); animate();
+        window.addEventListener('resize', () => {
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+        });
+    </script>
+</body>
+</html>

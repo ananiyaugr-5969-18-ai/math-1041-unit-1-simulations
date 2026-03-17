@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>1.4: Cross Product Area</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { margin:0; background:#fff; font-family: sans-serif; overflow:hidden; }
+        .notion-card { padding:16px; margin:16px; border:1px solid #e9e9e7; border-radius:8px; background:#fff; }
+        canvas { background:#f7f7f5; border:1px solid #eee; border-radius:4px; }
+    </style>
+</head>
+<body>
+    <div class="notion-card">
+        <h2 class="text-lg font-bold mb-2">1.4 Area $\|\vec{u} \times \vec{v}\|$</h2>
+        <canvas id="c" width="400" height="300"></canvas>
+        <div id="a" class="mt-2 font-mono text-red-600">Area: 0</div>
+    </div>
+    <script>
+        const c = document.getElementById('c'), ctx = c.getContext('2d'), a = document.getElementById('a');
+        let u = {x:150, y:-50}, v = {x:200, y:0}, origin = {x:50, y:250};
+        function draw() {
+            ctx.clearRect(0,0,400,300);
+            const p0=origin, p1={x:o.x+u.x, y:o.y+u.y}, p2={x:o.x+v.x, y:o.y+v.y}, p3={x:p1.x+v.x, y:p1.y+v.y};
+            ctx.fillStyle='rgba(212,64,40,0.1)'; ctx.beginPath(); ctx.moveTo(p0.x,p0.y); ctx.lineTo(p1.x,p1.y); ctx.lineTo(p3.x,p3.y); ctx.lineTo(p2.x,p2.y); ctx.closePath(); ctx.fill();
+            drawArrow(p0,p1,'#d44028'); drawArrow(p0,p2,'#37352f');
+            a.innerText = "Parallelogram Area: " + Math.abs(u.x*v.y - u.y*v.x).toFixed(0);
+        }
+        function drawArrow(a,b,c){ ctx.beginPath(); ctx.strokeStyle=c; ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke(); }
+        let dragging=false; c.onmousedown=()=>dragging=true; window.onmouseup=()=>dragging=false;
+        c.onmousemove=e=>{ if(!dragging)return; const r=c.getBoundingClientRect(); u.x=e.clientX-r.left-o.x; u.y=e.clientY-r.top-o.y; draw(); }
+        const o=origin; draw();
+    </script>
+</body>
+</html>

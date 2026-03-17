@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>1.5: 3D Plane Explorer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>body { margin:0; font-family: sans-serif; overflow:hidden; } .card { padding:16px; margin:16px; border:1px solid #eee; border-radius:8px; } #canvas { width:100%; height:300px; }</style>
+</head>
+<body>
+    <div class="card">
+        <h2 class="text-lg font-bold mb-2">1.5 Plane Explorer</h2>
+        <div id="canvas"></div>
+        <div class="mt-4"><label class="text-xs">Normal Y</label><input type="range" id="ny" min="-5" max="5" value="5" step="0.1" class="w-full"></div>
+    </div>
+    <script>
+        const el = document.getElementById('canvas'), scene = new THREE.Scene(); scene.background=new THREE.Color(0xf7f7f5);
+        const cam = new THREE.PerspectiveCamera(75, el.clientWidth/el.clientHeight, 0.1, 1000);
+        const ren = new THREE.WebGLRenderer(); ren.setSize(el.clientWidth, el.clientHeight); el.appendChild(ren.domElement);
+        scene.add(new THREE.GridHelper(10,10)); scene.add(new THREE.AmbientLight(0xffffff,0.8));
+        const pg = new THREE.PlaneGeometry(10,10); const pm = new THREE.MeshPhongMaterial({color:0x2383e2, transparent:true, opacity:0.4, side:THREE.DoubleSide});
+        const mesh = new THREE.Mesh(pg,pm); scene.add(mesh);
+        let arrow;
+        function upd() {
+            const ny = parseFloat(document.getElementById('ny').value); const n = new THREE.Vector3(0,ny,1).normalize();
+            mesh.lookAt(n); if(arrow) scene.remove(arrow); arrow = new THREE.ArrowHelper(n, new THREE.Vector3(0,0,0), 3, 0x000); scene.add(arrow);
+        }
+        cam.position.set(7,7,7); cam.lookAt(0,0,0);
+        function anim() { requestAnimationFrame(anim); ren.render(scene,cam); }
+        document.getElementById('ny').oninput = upd; upd(); anim();
+    </script>
+</body>
+</html>
