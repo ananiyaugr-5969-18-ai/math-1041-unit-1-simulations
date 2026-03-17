@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vector Equivalence & Parallelism</title>
+    <style>
+        :root {
+            --notion-bg-main: #FFFFFF;
+            --notion-bg-sidebar: #F7F7F5;
+            --notion-hover-main: #F1F1EF;
+            --notion-text-primary: #37352F;
+            --notion-text-secondary: #787774;
+            --notion-border: #E9E9E7;
+        }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--notion-bg-main);
+            color: var(--notion-text-primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        .prediction-prompt {
+            background-color: var(--notion-bg-sidebar);
+            border: 1px solid var(--notion-border);
+            padding: 12px 18px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            max-width: 600px;
+            text-align: center;
+            font-style: italic;
+        }
+        canvas {
+            border: 1px solid var(--notion-border);
+            background-color: #fff;
+            max-width: 100%;
+            cursor: crosshair;
+        }
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            background: var(--notion-bg-sidebar);
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        label {
+            font-size: 0.9em;
+            color: var(--notion-text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="prediction-prompt">
+        <strong>Prediction Prompt:</strong> Before you move Vector B: If B has the same length and direction as A, but a different starting point, are they equal? What happens to the "parallel" status if we scale B?
+    </div>
+    
+    <canvas id="canvas" width="600" height="400"></canvas>
+    
+    <div class="controls">
+        <div class="control-group">
+            <label>Subtopic: 1.2.2 Equivalence & 1.2.3 Parallelism</label>
+            <div id="status" style="font-weight: bold;">Drag vectors to test equivalence.</div>
+        </div>
+        <div class="control-group">
+            <label>Scale Vector B (Alpha): <span id="alpha-val">1.0</span></label>
+            <input type="range" id="alpha-slider" min="-2" max="2" step="0.1" value="1.0">
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const status = document.getElementById('status');
+        const alphaSlider = document.getElementById('alpha-slider');
+        const alphaVal = document.getElementById('alpha-val');
+
+        let alpha = 1.0;
+        
+        // Coordinates for Vector A (Fixed reference)
+        let vA = { x1: 100, y1: 300, x2: 200, y2: 200 };
+        // Coordinates for Vector B (Movable)
+        let vB = { x1: 300, y1: 300, x2: 400, y2: 200 };
+        
+        let dragging = null; // 'vB_start' or 'vB_end'
+
+        function drawVector(v, color, label) {
+            ctx.beginPath();
+            ctx.moveTo(v.x1, v.y1);
+            ctx.lineTo(v.x2, v.y2);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // Arrowhead
+            const angle = Math.atan2(v.y2 - v.y1, v.x2 - v.x1);
+            ctx.beginPath();
+            ctx.moveTo(v.x2, v.y2);
+            ctx.lineTo(v.x2 - 10 * Math.cos(angle - Math.PI / 6), v.y2 - 10 * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(v.x2 - 10 * Math.cos(angle + Math.PI / 6), v.y2 - 10 * Math.sin(angle + Math.PI / 6));
+            ctx.closePath();
+            ctx.fillStyle = color;
+            ctx.fill();
+
+            // Label
+            ctx.fillStyle = color;
+            ctx.font = '16px sans-serif';
+            ctx.fillText(label, (v.x1 + v.x2) / 2 + 10, (v.y1 + v.y2) / 2);
+        }
+
+        function update() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Grid
+            ctx.strokeStyle = '#f0f0f0';
+            ctx.lineWidth = 1;
+            for(let i=0; i<canvas.width; i+=20) {
+                ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke();
+            }
+            for(let i=0; i<canvas.height; i+=20) {
+                ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); ctx.stroke();
+            }
+
+            drawVector(vA, '#37352F', 'Vector A');
+            
+            // Apply scale to B visually (relative to its start)
+            const dx = (vB.x2 - vB.x1) * alpha;
+            const dy = (vB.y2 - vB.y1) * alpha;
+            const displayedB = { x1: vB.x1, y1: vB.y1, x2: vB.x1 + dx, y2: vB.y1 + dy };
+            
+            drawVector(displayedB, '#2383E2', 'Vector B');
+
+            // Logic Check
+            const compA = { x: vA.x2 - vA.x1, y: vA.y2 - vA.y1 };
+            const compB = { x: vB.x2 - vB.x1, y: vB.y2 - vB.y1 };
+            
+            const isEquivalent = Math.abs(compA.x - compB.x) < 2 && Math.abs(compA.y - compB.y) < 2 && alpha === 1;
+            
+            // Parallelism check: check if components are proportional
+            const cross = compA.x * compB.y - compA.y * compB.x;
+            const isParallel = Math.abs(cross) < 500; // tolerance for pixel snapping
+
+            if (isEquivalent) {
+                status.innerText = "STATUS: EQUIVALENT (Same magnitude/direction)";
+                status.style.color = "#0F7B6C";
+            } else if (isParallel) {
+                status.innerText = "STATUS: PARALLEL (Same slope)";
+                status.style.color = "#D9730D";
+            } else {
+                status.innerText = "STATUS: Distinct Vectors";
+                status.style.color = "var(--notion-text-primary)";
+            }
+        }
+
+        canvas.addEventListener('mousedown', e => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            if (Math.hypot(x - vB.x1, y - vB.y1) < 15) dragging = 'vB_start';
+            else if (Math.hypot(x - vB.x2, y - vB.y2) < 15) dragging = 'vB_end';
+        });
+
+        window.addEventListener('mousemove', e => {
+            if (!dragging) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            if (dragging === 'vB_start') {
+                const dx = vB.x2 - vB.x1;
+                const dy = vB.y2 - vB.y1;
+                vB.x1 = x; vB.y1 = y;
+                vB.x2 = x + dx; vB.y2 = y + dy;
+            } else if (dragging === 'vB_end') {
+                vB.x2 = x; vB.y2 = y;
+            }
+            update();
+        });
+
+        window.addEventListener('mouseup', () => dragging = null);
+
+        alphaSlider.addEventListener('input', () => {
+            alpha = parseFloat(alphaSlider.value);
+            alphaVal.innerText = alpha.toFixed(1);
+            update();
+        });
+
+        update();
+    </script>
+</body>
+</html>
