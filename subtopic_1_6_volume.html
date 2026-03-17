@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>1.6: Volume of Parallelepiped</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>body { margin:0; background:#fff; font-family:sans-serif; } .notion-card { padding:16px; margin:16px; border:1px solid #eee; border-radius:8px; } #c { width:100%; height:300px; }</style>
+</head>
+<body>
+    <div class="notion-card">
+        <h2 class="text-md font-bold mb-1">1.6 Triple Scalar Product: Volume $|\vec{a} \cdot (\vec{b} \times \vec{c})|$</h2>
+        <div id="c"></div>
+        <div class="mt-4"><label class="text-xs">Skew Factor:</label><input type="range" id="skew" min="-3" max="3" step="0.1" value="1" class="w-full"></div>
+        <div class="mt-2 font-mono text-sm" id="vol">Volume: 0.00</div>
+    </div>
+    <script>
+        const el = document.getElementById('c'), scene = new THREE.Scene(); scene.background=new THREE.Color(0xf7f7f5);
+        const cam = new THREE.PerspectiveCamera(75, el.clientWidth/el.clientHeight, 0.1, 1000);
+        const ren = new THREE.WebGLRenderer(); ren.setSize(el.clientWidth, el.clientHeight); el.appendChild(ren.domElement);
+        scene.add(new THREE.GridHelper(10,10)); scene.add(new THREE.AmbientLight(0xffffff,0.8));
+        let mesh;
+        function upd() {
+            if(mesh) scene.remove(mesh);
+            const s = parseFloat(document.getElementById('skew').value);
+            const a = new THREE.Vector3(3,0,0), b = new THREE.Vector3(s,3,0), c = new THREE.Vector3(0,s,3);
+            const vol = Math.abs(a.dot(b.clone().cross(c)));
+            document.getElementById('vol').innerText = "Volume: " + vol.toFixed(2);
+        }
+        cam.position.set(7,7,7); cam.lookAt(0,0,0);
+        function anim() { requestAnimationFrame(anim); ren.render(scene,cam); }
+        document.getElementById('skew').oninput = upd; upd(); anim();
+    </script>
+</body>
+</html>

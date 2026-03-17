@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>1.5: Distance Point to Line</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body { margin: 0; background-color: #ffffff; color: #37352f; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; overflow: hidden; }
+        .canvas-container { width: 100%; height: 300px; position: relative; border-radius: 8px; border: 1px solid #e9e9e7; background: #f7f7f5; }
+        .notion-card { padding: 16px; margin: 16px; border: 1px solid #e9e9e7; border-radius: 8px; background: white; box-shadow: rgba(15, 15, 15, 0.02) 0px 0px 0px 1px, rgba(15, 15, 15, 0.03) 0px 2px 4px; }
+        .control-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+        .label { font-size: 11px; font-weight: 600; color: #73726e; }
+        .dist-readout { font-size: 18px; font-weight: bold; color: #d44028; }
+    </style>
+</head>
+<body>
+    <div class="notion-card">
+        <h2 class="text-md font-bold mb-1">1.5 Distance from Point $Q$ to Line $L$</h2>
+        <div class="canvas-container" id="container"></div>
+        <div class="control-panel">
+            <div>
+                <div class="label">Point Q.y Pos:</div>
+                <input type="range" id="qy" min="-5" max="5" step="0.1" value="3" class="w-full">
+            </div>
+            <div class="text-right">
+                <div class="label">Distance $d$:</div>
+                <div id="dist" class="dist-readout">0.00</div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const el = document.getElementById('container'), scene = new THREE.Scene(); scene.background = new THREE.Color(0xf7f7f5);
+        const cam = new THREE.PerspectiveCamera(75, el.clientWidth/el.clientHeight, 0.1, 1000);
+        const ren = new THREE.WebGLRenderer({antialias:true}); ren.setSize(el.clientWidth, el.clientHeight); el.appendChild(ren.domElement);
+        scene.add(new THREE.GridHelper(10,10)); scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+        
+        const d = new THREE.Vector3(1, 0, 1).normalize();
+        const lineGeo = new THREE.BufferGeometry().setFromPoints([d.clone().multiplyScalar(-10), d.clone().multiplyScalar(10)]);
+        const line = new THREE.Line(lineGeo, new THREE.LineBasicMaterial({color: 0x37352f}));
+        scene.add(line);
+
+        const qGeo = new THREE.SphereGeometry(0.15, 16, 16);
+        const qMat = new THREE.MeshPhongMaterial({color: 0x2383e2});
+        const qMesh = new THREE.Mesh(qGeo, qMat);
+        scene.add(qMesh);
+
+        let distLine;
+
+        function update() {
+            const qy = parseFloat(document.getElementById('qy').value);
+            const Q = new THREE.Vector3(0, qy, 0);
+            qMesh.position.copy(Q);
+            const dist = Q.clone().cross(d).length();
+            document.getElementById('dist').innerText = dist.toFixed(2);
+            const projection = d.clone().multiplyScalar(Q.dot(d));
+            if(distLine) scene.remove(distLine);
+            const distGeo = new THREE.BufferGeometry().setFromPoints([Q, projection]);
+            distLine = new THREE.Line(distGeo, new THREE.LineDashedMaterial({color: 0xd44028, dashSize: 0.2, gapSize: 0.1}));
+            distLine.computeLineDistances();
+            scene.add(distLine);
+        }
+
+        cam.position.set(5, 5, 5); cam.lookAt(0,0,0);
+        function anim() { requestAnimationFrame(anim); ren.render(scene, cam); }
+        document.getElementById('qy').addEventListener('input', update);
+        update(); anim();
+    </script>
+</body>
+</html>
